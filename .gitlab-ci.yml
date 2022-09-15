@@ -1,0 +1,17 @@
+
+  
+build_test:
+  script:
+    - set -x
+    - python3 -m py_compile build_helper.py
+    - echo environment is
+    - env
+  
+deploy:
+  stage: deploy
+  only:
+    refs:
+       - main
+  script:
+    - mkdir -p ~/bin
+    - cp build_helper.py ~/bin/
