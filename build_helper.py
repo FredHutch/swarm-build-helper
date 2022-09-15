@@ -32,16 +32,33 @@ def main():
     "do the work"
     with open(sys.argv[1]) as file:
         yml = yaml.safe_load(file)
-    print(yml)
-    import IPython; IPython.embed()
+    errors = []
+    if not ['networks'] in yml:
+        errors.append("No networks defined")
+    networks = yml['networks']
+    if not ['backend'] in networks or not networks['backend'] is None:
+        errors.append("Must have 'backend' network defined with no value")
+    # TODO proxy network
+    # TODO both networks in main service
+    # TODO consistent app name in main service
+    # TODO app name should not be used by any other app (how do we do this?)
+
     main_service = None
-    for service in yml['services']:
+    for service_name, service in yml['services'].items():
         if 'deploy' in service and 'labels' in service['deploy']:
             main_service = service
             break
-        print(service)
     if not main_service:
         raise Exception("No service found with deploy.labels")
+    labels = main_service['deploy']['labels']
+    if not 'traefik.enable=true' in labels:
+        raise Exception("traefik.enable label not set")
+    
+    # inject stuff
+    github_url = sys.getenv('CI_PROJECT_URL').replace(".ci.fredhutch.org", "github.com")
+    labels['org.fredhutch.app.github_url'] = github_url
+    labels['org.fredhutch.app.owner'] = sys.getenv('CI_COMMIT_AUTHOR')
+    print(yaml.dump(yml))
 
 if __name__ == "__main__":
     main()
