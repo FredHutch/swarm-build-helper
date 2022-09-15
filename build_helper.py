@@ -23,6 +23,7 @@ yml file, generated in build_test, can be reused.
 
 """
 
+import os
 import sys
 import yaml
 
@@ -33,10 +34,10 @@ def main():
     with open(sys.argv[1]) as file:
         yml = yaml.safe_load(file)
     errors = []
-    if not ['networks'] in yml:
+    if not 'networks' in yml:
         errors.append("No networks defined")
     networks = yml['networks']
-    if not ['backend'] in networks or not networks['backend'] is None:
+    if not 'backend' in networks or not networks['backend'] is None:
         errors.append("Must have 'backend' network defined with no value")
     # TODO proxy network
     # TODO both networks in main service
@@ -55,9 +56,9 @@ def main():
         raise Exception("traefik.enable label not set")
     
     # inject stuff
-    github_url = sys.getenv('CI_PROJECT_URL').replace(".ci.fredhutch.org", "github.com")
-    labels['org.fredhutch.app.github_url'] = github_url
-    labels['org.fredhutch.app.owner'] = sys.getenv('CI_COMMIT_AUTHOR')
+    github_url = os.getenv('CI_PROJECT_URL').replace(".ci.fredhutch.org", "github.com")
+    labels.append(f"org.fredhutch.app.github_url={github_url}")
+    labels.append(f"org.fredhutch.app.owner={os.getenv('CI_COMMIT_AUTHOR')}")
     print(yaml.dump(yml))
 
 if __name__ == "__main__":
