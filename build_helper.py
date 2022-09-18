@@ -56,7 +56,7 @@ def main():
         raise Exception("traefik.enable label not set")
     
     # inject stuff
-    github_url = os.getenv('CI_PROJECT_URL').replace(".ci.fredhutch.org", "github.com")
+    github_url = os.getenv('CI_PROJECT_URL').replace("ci.fredhutch.org", "github.com")
     labels.append(f"org.fredhutch.app.github_url={github_url}")
     labels.append(f"org.fredhutch.app.owner={os.getenv('CI_COMMIT_AUTHOR')}")
     print(yaml.dump(yml))
