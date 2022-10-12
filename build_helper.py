@@ -25,7 +25,7 @@ yml file, generated in test, can be reused.
 
 
 """
-
+import argparse
 import os
 import sys
 import yaml
@@ -34,21 +34,19 @@ import yaml
 
 def main():
     "do the work"
-    with open(sys.argv[1]) as file:
+    parser = argparse.ArgumentParser(description='Validate and/or inject data into a swarm stack deployment file')
+    parser.add_argument('--no-network-check', action='store_true', help='Do not check for proxy network')
+    parser.add_argument('yml_file', help='YML file to validate/inject')
+    args = parser.parse_args()
+    with open(args.yml_file) as file:
         yml = yaml.safe_load(file)
-    errors = []
-    if not 'networks' in yml:
-        errors.append("No networks defined")
-    networks = yml['networks']
-    # TODO should we be checking this or just adding it?
-    if not 'proxy' in networks or not networks['proxy'] ==  dict(external=True):
-        errors.append("Must have 'proxy' network defined as external: true")
-    if errors:
-        sys.stderr.write("Errors found: {}".format("\n".join(errors)))
-        sys.stderr.flush()
-        sys.exit(1)
-    # TODO proxy network
-    # TODO both networks in main service
+    if not args.no_network_check:
+        if not 'networks' in yml:
+            raise Exception("No networks defined")
+        networks = yml['networks']
+        # TODO should we be checking this or just adding it?
+        if not 'proxy' in networks or not networks['proxy'] ==  dict(external=True):
+            raise Exception("Must have 'proxy' network defined as external: true")
     # TODO consistent app name in main service
 
     main_service = None
@@ -61,6 +59,11 @@ def main():
     labels = main_service['deploy']['labels']
     if not 'traefik.enable=true' in labels:
         raise Exception("traefik.enable label not set")
+    if not args.no_network_check:
+        if not 'networks' in main_service:
+            raise Exception("No networks defined for main service")
+        if not 'proxy' in main_service['networks']:
+            raise Exception("proxy network not defined for main service")
     
     # inject stuff
     github_url = os.getenv('CI_PROJECT_URL').replace("ci.fredhutch.org", "github.com")
