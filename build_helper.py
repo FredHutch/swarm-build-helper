@@ -36,6 +36,7 @@ def main():
     "do the work"
     parser = argparse.ArgumentParser(description='Validate and/or inject data into a swarm stack deployment file')
     parser.add_argument('--no-network-check', action='store_true', help='Do not check for proxy network')
+    parser.add_argument('--external', action='store_true', help='Do not whitelist internal IPs')
     parser.add_argument('yml_file', help='YML file to validate/inject')
     args = parser.parse_args()
     with open(args.yml_file) as file:
@@ -70,6 +71,15 @@ def main():
     labels.append(f"org.fredhutch.app.github_url={github_url}")
     labels.append(f"org.fredhutch.app.owner={os.getenv('CI_COMMIT_AUTHOR')}")
     labels.append(f"org.fredhutch.app.name={os.getenv('CI_PROJECT_NAME')}")
+
+    # whitelist internal IPs for internal apps
+    if not args.external:
+        # get router names
+        hostrules = [x for x in labels if "rule=Host" in x]
+        for rule in hostrules:
+            segs = rule.split(".")
+            router_name = segs[3]
+            labels.append(f"traefik.http.routers.{router_name}.middlewares=internal-ipwhitelist")
 
     # do logging for each service
     if not os.getenv('SPLUNK_TOKEN'):
