@@ -73,13 +73,14 @@ def main():
     labels.append(f"org.fredhutch.app.name={os.getenv('CI_PROJECT_NAME')}")
 
     # whitelist internal IPs for internal apps
-    if not args.external:
-        # get router names
-        hostrules = [x for x in labels if "rule=Host" in x]
-        for rule in hostrules:
-            segs = rule.split(".")
-            router_name = segs[3]
-            labels.append(f"traefik.http.routers.{router_name}.middlewares=internal-ipwhitelist")
+    # comment this out for now
+    # if not args.external:
+    #     # get router names
+    #     hostrules = [x for x in labels if "rule=Host" in x]
+    #     for rule in hostrules:
+    #         segs = rule.split(".")
+    #         router_name = segs[3]
+    #         labels.append(f"traefik.http.routers.{router_name}.middlewares=internal-ipwhitelist")
 
     # do logging for each service
     if not os.getenv('SPLUNK_TOKEN'):
