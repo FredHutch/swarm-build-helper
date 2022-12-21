@@ -36,7 +36,6 @@ def main():
     "do the work"
     parser = argparse.ArgumentParser(description='Validate and/or inject data into a swarm stack deployment file')
     parser.add_argument('--no-network-check', action='store_true', help='Do not check for proxy network')
-    parser.add_argument('--external', action='store_true', help='Do not whitelist internal IPs')
     parser.add_argument('yml_file', help='YML file to validate/inject')
     args = parser.parse_args()
     with open(args.yml_file) as file:
@@ -50,43 +49,35 @@ def main():
             raise Exception("Must have 'proxy' network defined as external: true")
     # TODO consistent app name in main service
 
-    main_service = None
+    main_services = []
     for service_name, service in yml['services'].items():
         if 'deploy' in service and 'labels' in service['deploy']:
-            main_service = service
-            break
-    if not main_service:
-        raise Exception("No service found with deploy.labels")
-    labels = main_service['deploy']['labels']
-    if not 'traefik.enable=true' in labels:
-        raise Exception("traefik.enable label not set")
-    if not args.no_network_check:
-        if not 'networks' in main_service:
-            raise Exception("No networks defined for main service")
-        if not 'proxy' in main_service['networks']:
-            raise Exception("proxy network not defined for main service")
-    
-    # inject stuff
-    github_url = os.getenv('CI_PROJECT_URL').replace("ci.fredhutch.org", "github.com")
-    labels.append(f"org.fredhutch.app.github_url={github_url}")
-    labels.append(f"org.fredhutch.app.owner={os.getenv('CI_COMMIT_AUTHOR')}")
-    labels.append(f"org.fredhutch.app.name={os.getenv('CI_PROJECT_NAME')}")
+            main_services.append(service)
+    if not main_services:
+        raise Exception("No services found with deploy.labels")
+    for service in main_services:
+        labels = service['deploy']['labels']
+        if not 'traefik.enable=true' in labels:
+            raise Exception("traefik.enable label not set")
+        if not args.no_network_check:
+            if not 'networks' in service:
+                raise Exception("No networks defined for main service")
+            if not 'proxy' in service['networks']:
+                raise Exception("proxy network not defined for main service")
+        
+        # inject stuff
+        github_url = os.getenv('CI_PROJECT_URL').replace("ci.fredhutch.org", "github.com")
+        labels.append(f"org.fredhutch.app.github_url={github_url}")
+        labels.append(f"org.fredhutch.app.owner={os.getenv('CI_COMMIT_AUTHOR')}")
+        labels.append(f"org.fredhutch.app.name={os.getenv('CI_PROJECT_NAME')}")
 
-    # whitelist internal IPs for internal apps
-    # comment this out for now
-    if not args.external:
-        # get router names
-        hostrules = [x for x in labels if "rule=Host" in x]
-        for rule in hostrules:
-            segs = rule.split(".")
-            router_name = segs[3]
-            labels.append(f"traefik.http.routers.{router_name}.middlewares=internal-ipwhitelist")
 
-    # do logging for each service
-    if not os.getenv('SPLUNK_TOKEN'):
-        raise Exception("SPLUNK_TOKEN not set")
-    if not os.getenv('SPLUNK_URL'):
-        raise Exception("SPLUNK_URL not set")
+        # do logging for each service
+        if not os.getenv('SPLUNK_TOKEN'):
+            raise Exception("SPLUNK_TOKEN not set")
+        if not os.getenv('SPLUNK_URL'):
+            raise Exception("SPLUNK_URL not set")
+
     for servicename, service in yml['services'].items():
         service['logging'] = dict(driver='splunk')
         service['logging']['options'] = {}
