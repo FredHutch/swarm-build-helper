@@ -92,7 +92,7 @@ def main():
         service['logging']['options'] = {}
         service['logging']['options']['splunk-token'] = os.getenv('SPLUNK_TOKEN')
         service['logging']['options']['splunk-url'] = os.getenv('SPLUNK_URL')
-        service['logging']['options']['tag'] = f"{os.getenv('CI_PROJECT_NAME')}/{servicename}/{{{{.Name}}}}"
+        service['logging']['options']['tag'] = f"{os.getenv('CI_PROJECT_NAME')}/{servicename}"
     print(yaml.dump(yml))
 
 if __name__ == "__main__":
