@@ -79,7 +79,6 @@ def main():
             raise Exception("SPLUNK_URL not set")
 
 
-    # TODO uncomment the below when splunk server comes back up
     for servicename, service in yml['services'].items():
         service['logging'] = dict(driver='splunk')
         service['logging']['options'] = {}
