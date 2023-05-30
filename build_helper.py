@@ -78,12 +78,14 @@ def main():
         if not os.getenv('SPLUNK_URL'):
             raise Exception("SPLUNK_URL not set")
 
-    for servicename, service in yml['services'].items():
-        service['logging'] = dict(driver='splunk')
-        service['logging']['options'] = {}
-        service['logging']['options']['splunk-token'] = os.getenv('SPLUNK_TOKEN')
-        service['logging']['options']['splunk-url'] = os.getenv('SPLUNK_URL')
-        service['logging']['options']['tag'] = f"{os.getenv('CI_PROJECT_NAME')}/{servicename}"
+
+    # TODO uncomment the below when splunk server comes back up
+    # for servicename, service in yml['services'].items():
+    #     service['logging'] = dict(driver='splunk')
+    #     service['logging']['options'] = {}
+    #     service['logging']['options']['splunk-token'] = os.getenv('SPLUNK_TOKEN')
+    #     service['logging']['options']['splunk-url'] = os.getenv('SPLUNK_URL')
+    #     service['logging']['options']['tag'] = f"{os.getenv('CI_PROJECT_NAME')}/{servicename}"
     print(yaml.dump(yml))
 
 if __name__ == "__main__":
