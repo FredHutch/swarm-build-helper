@@ -36,6 +36,7 @@ def main():
     "do the work"
     parser = argparse.ArgumentParser(description='Validate and/or inject data into a swarm stack deployment file')
     parser.add_argument('--no-network-check', action='store_true', help='Do not check for proxy network')
+    parser.add_argument('--fluentd-logging', action='store_true', help='Use fluentd logging')
     parser.add_argument('yml_file', help='YML file to validate/inject')
     args = parser.parse_args()
     with open(args.yml_file) as file:
@@ -71,20 +72,33 @@ def main():
         labels.append(f"org.fredhutch.app.owner={os.getenv('CI_COMMIT_AUTHOR')}")
         labels.append(f"org.fredhutch.app.name={os.getenv('CI_PROJECT_NAME')}")
 
+        if args.fluentd_logging:
+            # fluentd logging will allow the app developer to 
+            # see the app logs even if they do not have access
+            # to our gitlab instance. it also forwards logs to
+            # splunk. see https://github.com/FredHutch/sc-fluentd.git
+            for var in ['FLUENTD_HOST', 'FLUENTD_PORT']:
+                if not os.getenv(var):
+                    raise Exception(f"{var} not set")
 
-        # do logging for each service
-        if not os.getenv('SPLUNK_TOKEN'):
-            raise Exception("SPLUNK_TOKEN not set")
-        if not os.getenv('SPLUNK_URL'):
-            raise Exception("SPLUNK_URL not set")
+            for servicename, service in yml['services'].items():
+                service['logging'] = dict(driver='fluentd')
+                service['logging']['options'] = {}
+                service['logging']['options']['fluentd-address'] = f"{os.getenv('FLUENTD_HOST')}:{os.getenv('FLUENTD_PORT')}"
+                service['logging']['options']['tag'] = f"docker.{os.getenv('CI_PROJECT_NAME')}"
+        else: # splunk logging - the default
+            # do logging for each service
+            if not os.getenv('SPLUNK_TOKEN'):
+                raise Exception("SPLUNK_TOKEN not set")
+            if not os.getenv('SPLUNK_URL'):
+                raise Exception("SPLUNK_URL not set")
 
-
-    for servicename, service in yml['services'].items():
-        service['logging'] = dict(driver='splunk')
-        service['logging']['options'] = {}
-        service['logging']['options']['splunk-token'] = os.getenv('SPLUNK_TOKEN')
-        service['logging']['options']['splunk-url'] = os.getenv('SPLUNK_URL')
-        service['logging']['options']['tag'] = f"{os.getenv('CI_PROJECT_NAME')}/{servicename}"
+            for servicename, service in yml['services'].items():
+                service['logging'] = dict(driver='splunk')
+                service['logging']['options'] = {}
+                service['logging']['options']['splunk-token'] = os.getenv('SPLUNK_TOKEN')
+                service['logging']['options']['splunk-url'] = os.getenv('SPLUNK_URL')
+                service['logging']['options']['tag'] = f"{os.getenv('CI_PROJECT_NAME')}/{servicename}"
     print(yaml.dump(yml))
 
 if __name__ == "__main__":
