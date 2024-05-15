@@ -39,8 +39,11 @@ def main():
     parser.add_argument('--fluentd-logging', action='store_true', help='Use fluentd logging')
     parser.add_argument('yml_file', help='YML file to validate/inject')
     args = parser.parse_args()
-    with open(args.yml_file) as file:
-        yml = yaml.safe_load(file)
+    if args.yml_file == '-':
+        yml = yaml.safe_load(sys.stdin)
+    else:
+        with open(args.yml_file) as file:
+            yml = yaml.safe_load(file)
     if not args.no_network_check:
         if not 'networks' in yml:
             raise Exception("No networks defined")
@@ -99,7 +102,7 @@ def main():
                 service['logging']['options']['splunk-token'] = os.getenv('SPLUNK_TOKEN')
                 service['logging']['options']['splunk-url'] = os.getenv('SPLUNK_URL')
                 service['logging']['options']['tag'] = f"{os.getenv('CI_PROJECT_NAME')}/{servicename}"
-    print(yaml.dump(yml))
+    print(yaml.dump(yml, default_style='"'))
 
 if __name__ == "__main__":
     main()
