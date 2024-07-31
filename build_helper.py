@@ -67,11 +67,6 @@ def main():
         labels = service['deploy']['labels']
         if not 'traefik.enable=true' in labels:
             raise Exception("traefik.enable label not set")
-        if not args.no_network_check:
-            if not 'networks' in service:
-                raise Exception("No networks defined for main service")
-            if not 'proxy' in service['networks']:
-                raise Exception("proxy network not defined for main service")
         
         # inject stuff
         github_url = os.getenv('CI_PROJECT_URL').replace("ci.fredhutch.org", "github.com")
