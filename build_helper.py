@@ -49,8 +49,12 @@ def main():
             raise Exception("No networks defined")
         networks = yml['networks']
         # TODO should we be checking this or just adding it?
-        if not 'proxy' in networks or not networks['proxy'] ==  dict(external=True):
-            raise Exception("Must have 'proxy' network defined as external: true")
+        ok_networks = ['proxy', 'proxytemp'] # add new network when it is ready
+        for network in ok_networks:
+            if network in networks or networks[network] ==  dict(external=True):
+                break
+        else: # this is not executed if the for loop was exited with break
+            raise Exception(f"Service must use one of the following networks and define it as external: {ok_networks}")
     # TODO consistent app name in main service
 
     main_services = []
