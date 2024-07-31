@@ -51,7 +51,7 @@ def main():
         # TODO should we be checking this or just adding it?
         ok_networks = ['proxy', 'proxytemp'] # add new network when it is ready
         for network in ok_networks:
-            if network in networks or networks[network] ==  dict(external=True):
+            if network in networks and networks[network] ==  dict(external=True):
                 break
         else: # this is not executed if the for loop was exited with break
             raise Exception(f"Service must use one of the following networks and define it as external: {ok_networks}")
