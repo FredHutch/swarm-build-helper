@@ -49,7 +49,7 @@ def main():
             raise Exception("No networks defined")
         networks = yml['networks']
         # TODO should we be checking this or just adding it?
-        ok_networks = ['proxy', 'proxytemp', 'sc_swarm_network'] # add new network when it is ready
+        ok_networks = ['proxy', 'proxytemp', 'sc-swarm-net'] # add new network when it is ready
         for network in ok_networks:
             if network in networks and networks[network] ==  dict(external=True):
                 break
