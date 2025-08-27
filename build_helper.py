@@ -75,7 +75,16 @@ def main():
         labels.append(f"org.fredhutch.app.owner={os.getenv('CI_COMMIT_AUTHOR')}")
         labels.append(f"org.fredhutch.app.name={os.getenv('CI_PROJECT_NAME')}")
 
-        if not args.no_logging:
+        # Our log host is not responding and newly deployed apps do
+        # not actually deploy because of this. I added a --no-logging option
+        # but that means we'd have to patch every app that is deployed until
+        # this is fixed. Instead I will disable logging wholesale until the problem
+        # is resolved. 
+
+        # This condition will never evaluate to True. 
+        # Remove "False and" when logging server is back up.
+
+        if False and not args.no_logging:
             if args.fluentd_logging:
                 # fluentd logging will allow the app developer to 
                 # see the app logs even if they do not have access
