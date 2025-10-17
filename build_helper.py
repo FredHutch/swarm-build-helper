@@ -9,8 +9,7 @@ yml (swarm stack deployment) file as input:
 
 * Make sure required labels are set in YML file.
 * Make sure there are no conflicting labels for a different app in the YML file
-* Inject new labels containing github repo, app owner email, 
-  logging config, etc.
+* Inject new labels containing github repo, logging config, etc.
 * TODO: Add this app to a monitoring system (if it hasn't been added already)
   that will alert app owner (and scicomp?) if app container(s) goes down.
 
@@ -72,7 +71,6 @@ def main():
         # inject stuff
         github_url = os.getenv('CI_PROJECT_URL').replace("ci.fredhutch.org", "github.com")
         labels.append(f"org.fredhutch.app.github_url={github_url}")
-        labels.append(f"org.fredhutch.app.owner={os.getenv('CI_COMMIT_AUTHOR')}")
         labels.append(f"org.fredhutch.app.name={os.getenv('CI_PROJECT_NAME')}")
 
         if not args.no_logging:
