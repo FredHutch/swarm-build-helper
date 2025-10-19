@@ -72,6 +72,7 @@ def main():
         github_url = os.getenv('CI_PROJECT_URL').replace("ci.fredhutch.org", "github.com")
         labels.append(f"org.fredhutch.app.github_url={github_url}")
         labels.append(f"org.fredhutch.app.name={os.getenv('CI_PROJECT_NAME')}")
+        labels.append(f"org.fredhutch.app.last_committer={os.getenv('CI_COMMIT_AUTHOR')}")      
 
         if not args.no_logging:
             if args.fluentd_logging:
