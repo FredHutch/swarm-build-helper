@@ -25,6 +25,7 @@ yml file, generated in test, can be reused.
 
 """
 import argparse
+import datetime
 import os
 import sys
 import yaml
@@ -73,6 +74,7 @@ def main():
         labels.append(f"org.fredhutch.app.github_url={github_url}")
         labels.append(f"org.fredhutch.app.name={os.getenv('CI_PROJECT_NAME')}")
         labels.append(f"org.fredhutch.app.last_committer={os.getenv('CI_COMMIT_AUTHOR')}")      
+        labels.append(f"org.fredhutch.first_deployed_date={datetime.datetime.now().strftime("%Y-%m-%d")}")
 
         if not args.no_logging:
             if args.fluentd_logging:
