@@ -74,7 +74,8 @@ def main():
         labels.append(f"org.fredhutch.app.github_url={github_url}")
         labels.append(f"org.fredhutch.app.name={os.getenv('CI_PROJECT_NAME')}")
         labels.append(f"org.fredhutch.app.last_committer={os.getenv('CI_COMMIT_AUTHOR')}")      
-        labels.append(f"org.fredhutch.first_deployed_date={datetime.datetime.now().strftime("%Y-%m-%d")}")
+        labels.append(f"org.fredhutch.first_deployed_date={datetime.datetime.now().isoformat()}")
+        labels.append(f"org.fredhutch.last_deployed_date={os.getenv('CI_JOB_STARTED_AT')}")
 
         if not args.no_logging:
             if args.fluentd_logging:
